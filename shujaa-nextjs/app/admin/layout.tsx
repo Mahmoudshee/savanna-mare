@@ -55,7 +55,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         display: 'flex', flexDirection: 'column', flexShrink: 0,
         position: isMobile ? 'fixed' : 'sticky',
         top: 0, left: 0, height: '100vh', zIndex: 50,
-        overflowY: 'auto',
+        overflowY: 'hidden',
         transform: sidebarVisible ? 'translateX(0)' : 'translateX(-100%)',
         transition: 'transform 0.25s ease',
       }}>
@@ -74,8 +74,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div style={{ font: '500 8px DM Sans,sans-serif', letterSpacing: '0.3em', color: '#5a8a6a', textTransform: 'uppercase' }}>Admin Panel</div>
         </div>
 
-        {/* Nav links */}
-        <nav style={{ flex: 1, padding: '8px 0' }}>
+        {/* Nav links — scrollable if content overflows */}
+        <nav style={{ flex: 1, padding: '8px 0', overflowY: 'auto', overflowX: 'hidden' }}>
           {NAV.map(({ href, label, icon }) => {
             const active = pathname === href
             return (
@@ -101,8 +101,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </nav>
 
-        {/* Sign out */}
-        <div style={{ padding: '14px 18px', borderTop: '1px solid #1f4336' }}>
+        {/* Sign out — always pinned to bottom */}
+        <div style={{ padding: '14px 18px', borderTop: '1px solid #1f4336', flexShrink: 0, marginTop: 'auto' }}>
           {/* Visit site button */}
           <a
             href="/"
