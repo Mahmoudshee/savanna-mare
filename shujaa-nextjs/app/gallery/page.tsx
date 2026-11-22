@@ -63,11 +63,13 @@ export default function GalleryPage() {
         }
       }
 
-      // De-duplicate by URL
+      // De-duplicate by URL and strip blank/placeholder URLs
       const seen = new Set<string>()
       const unique = all.filter(img => {
-        if (seen.has(img.url)) return false
-        seen.add(img.url)
+        const u = img.url?.trim()
+        if (!u || u.length < 10) return false   // skip empty / suspiciously short
+        if (seen.has(u)) return false
+        seen.add(u)
         return true
       })
 
@@ -159,6 +161,7 @@ export default function GalleryPage() {
                 {images.map((img, i) => (
                   <div
                     key={i}
+                    data-gallery-item="1"
                     onClick={() => setLightbox(img)}
                     style={{
                       cursor: 'pointer',
@@ -176,6 +179,10 @@ export default function GalleryPage() {
                       style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.3s ease' }}
                       onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.04)')}
                       onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                      onError={e => {
+                        const wrapper = e.currentTarget.closest('[data-gallery-item]') as HTMLElement | null
+                        if (wrapper) wrapper.style.display = 'none'
+                      }}
                     />
                     {img.source && (
                       <div style={{

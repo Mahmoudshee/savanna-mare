@@ -15,6 +15,8 @@ const NAV = [
   { href: '/admin/account',    label: 'Account & Users',icon: '👤' },
 ]
 
+const SITE_LINK = { href: '/', label: 'Visit Site', icon: '🌍' }
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -37,7 +39,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const sidebarVisible = !isMobile || open
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'DM Sans,sans-serif', position: 'relative' }}>
+    <div style={{ display: 'flex', height: '100vh', fontFamily: 'DM Sans,sans-serif', position: 'relative', overflow: 'hidden' }}>
 
       {/* ── Mobile overlay ── */}
       {isMobile && open && (
@@ -49,10 +51,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* ── Sidebar ── */}
       <aside style={{
-        width: 220, minHeight: '100vh', background: '#0f2219',
+        width: 220, background: '#0f2219',
         display: 'flex', flexDirection: 'column', flexShrink: 0,
-        position: isMobile ? 'fixed' : 'relative',
-        top: 0, left: 0, bottom: 0, zIndex: 50,
+        position: isMobile ? 'fixed' : 'sticky',
+        top: 0, left: 0, height: '100vh', zIndex: 50,
+        overflowY: 'auto',
         transform: sidebarVisible ? 'translateX(0)' : 'translateX(-100%)',
         transition: 'transform 0.25s ease',
       }}>
@@ -100,6 +103,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Sign out */}
         <div style={{ padding: '14px 18px', borderTop: '1px solid #1f4336' }}>
+          {/* Visit site button */}
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '9px 10px', marginBottom: 10,
+              background: '#1f4336', borderRadius: 5,
+              color: '#6a9e7f', fontSize: 11, fontWeight: 700,
+              textDecoration: 'none', letterSpacing: '0.05em',
+              border: '1px solid #2a5a46',
+              transition: 'background 0.15s',
+            }}
+          >
+            <span style={{ fontSize: 14 }}>🌍</span> Visit Site ↗
+          </a>
           <form action="/api/admin/logout" method="POST">
             <button type="submit" style={{ background: 'none', border: 0, color: '#7aab8a', fontSize: 11, cursor: 'pointer', padding: 0, letterSpacing: '0.07em' }}>
               ← Sign out
@@ -109,7 +129,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* ── Main area ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100vh', overflow: 'hidden' }}>
 
         {/* Mobile top bar */}
         {isMobile && (
@@ -123,7 +143,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         )}
 
-        <main style={{ flex: 1, background: '#f4f5f3', padding: isMobile ? '20px 16px' : '36px 40px', overflowY: 'auto', minWidth: 0 }}>
+        <main style={{ flex: 1, background: '#f4f5f3', padding: isMobile ? '20px 16px' : '36px 40px', overflowY: 'auto', minWidth: 0, height: 0 }}>
           {children}
         </main>
       </div>
