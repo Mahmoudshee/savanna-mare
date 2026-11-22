@@ -1,0 +1,25 @@
+# Node & build output — never commit these
+node_modules/
+.next/
+out/
+dist/
+build/
+.turbo/
+
+# Environment & local secrets
+.env
+.env.local
+.env.*.local
+
+# Local admin credentials
+data/admin-credentials.json
+
+# TypeScript cache
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
