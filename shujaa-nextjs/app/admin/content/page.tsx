@@ -41,7 +41,7 @@ function Toast({ msg, ok }: { msg: string; ok: boolean }) {
 }
 
 // ── Upload field: paste URL or pick file ───────────────────────────────────
-function UploadField({ label, value, folder, onChange, hint }: { label: string; value: string; folder: string; onChange: (url: string) => void; hint?: string }) {
+function UploadField({ label, value, folder, onChange, hint, showPreview = true }: { label: string; value: string; folder: string; onChange: (url: string) => void; hint?: string; showPreview?: boolean }) {
   const [uploading, setUploading] = useState(false)
   const ref = useRef<HTMLInputElement>(null)
 
@@ -61,7 +61,7 @@ function UploadField({ label, value, folder, onChange, hint }: { label: string; 
     <div style={{ marginBottom: 18 }}>
       <label style={lbl}>{label}</label>
       {hint && <div style={{ fontSize: 10, color: '#888', marginBottom: 5 }}>{hint}</div>}
-      {value && (
+      {showPreview && value && (
         <img src={value} alt="" style={{ width: '100%', maxHeight: 160, objectFit: 'cover', borderRadius: 4, marginBottom: 8, border: '1px solid #e2e6df' }} />
       )}
       <div style={{ display: 'flex', gap: 6 }}>
@@ -171,16 +171,26 @@ function GalleryEditor({ images, onChange }: { images: { url: string; alt: strin
   return (
     <div>
       {images.map((img, i) => (
-        <div key={i} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr 180px auto', gap: 10, alignItems: 'start', marginBottom: 12, padding: 12, background: '#f9f9f8', borderRadius: 4, border: '1px solid #e2e6df' }}>
-          <div style={{ width: 72, height: 54, background: '#e5e7e4', borderRadius: 3, overflow: 'hidden', flexShrink: 0 }}>
-            {img.url ? <img src={img.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', fontSize: 20 }}>🖼️</div>}
+        <div key={i} style={{ marginBottom: 14, padding: 14, background: '#f9f9f8', borderRadius: 6, border: '1px solid #e2e6df' }}>
+          {/* Row 1: label + X button */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Image {i + 1}</span>
+            <button type="button" onClick={() => remove(i)} style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fca5a5', borderRadius: 4, padding: '4px 10px', cursor: 'pointer', fontSize: 13, lineHeight: 1 }}>✕ Remove</button>
           </div>
-          <UploadField label={`Image ${i + 1}`} value={img.url} folder="gallery" onChange={v => update(i, 'url', v)} />
+          {/* Row 2: thumbnail + upload side by side */}
+          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 10 }}>
+            <div style={{ width: 72, height: 54, background: '#e5e7e4', borderRadius: 3, overflow: 'hidden', flexShrink: 0 }}>
+              {img.url ? <img src={img.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', fontSize: 20 }}>🖼️</div>}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <UploadField label="Image URL" value={img.url} folder="gallery" onChange={v => update(i, 'url', v)} showPreview={false} />
+            </div>
+          </div>
+          {/* Row 3: alt text full width */}
           <div>
             <label style={lbl}>Alt text</label>
-            <input style={inp} value={img.alt} onChange={e => update(i, 'alt', e.target.value)} placeholder="Describe the image" />
+            <input style={inp} value={img.alt} onChange={e => update(i, 'alt', e.target.value)} placeholder="Describe the image (e.g. Red elephants in Tsavo)" />
           </div>
-          <button type="button" onClick={() => remove(i)} style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fca5a5', borderRadius: 3, padding: '8px 12px', cursor: 'pointer', marginTop: 24 }}>✕</button>
         </div>
       ))}
       <button type="button" onClick={add} style={{ background: '#f4f5f3', border: '1px dashed #aaa', borderRadius: 3, padding: '10px 20px', fontSize: 12, cursor: 'pointer', width: '100%', marginTop: 4 }}>+ Add image</button>
