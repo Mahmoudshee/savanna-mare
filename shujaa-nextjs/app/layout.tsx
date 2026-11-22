@@ -20,7 +20,16 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: 'Kenya Safari & Watamu Coast | Savanna & Mare Adventures',
   description: 'A nine-day coast-and-safari journey from Mombasa to Tsavo East and Watamu with Savanna & Mare Adventures.',
-  themeColor: '#fffdf7',
+  themeColor: '#0f2219',
+  icons: {
+    icon: [
+      { url: '/icon.svg',  type: 'image/svg+xml' },
+      { url: '/icon.png',  type: 'image/png', sizes: '512x512' },
+    ],
+    apple: { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+    shortcut: '/favicon.ico',
+  },
+  manifest: '/manifest.json',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
