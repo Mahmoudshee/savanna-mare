@@ -79,7 +79,7 @@ export default function HomePage() {
                 style={{ backgroundImage: `url('${img.url}')` }} />
             ))}
             <VideoModal youtubeId={home.video_youtube_id} label="Watch Tsavo East film" />
-            <button style={{ position: 'absolute', right: 16, bottom: 15, border: 0, borderRadius: 2, background: '#fff', padding: '10px 13px', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
+            <button onClick={() => window.location.href = '/gallery'} style={{ position: 'absolute', right: 16, bottom: 15, border: 0, borderRadius: 2, background: '#fff', padding: '10px 13px', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
               View all photos ↗
             </button>
           </div>
