@@ -1,9 +1,9 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
 import Link from 'next/link'
+import Logo from '@/components/Logo'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -87,10 +87,44 @@ export default function GalleryPage() {
 
   return (
     <>
-      <SiteHeader />
+      {/* ── Dark header matching homepage ── */}
+      <div style={{ background: 'var(--ink, #0f2219)', color: '#c8d8c5', position: 'sticky', top: 0, zIndex: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.3)' }}>
+        {/* Top bar */}
+        <div className="top-bar">Small groups · local knowledge · journeys made with care</div>
+        {/* Logo + nav row */}
+        <div className="shell header-row">
+          <Link href="/" style={{ flexShrink: 0, marginRight: 40, textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+            <Logo height={38} variant="light" />
+          </Link>
+          <nav className="header-tabs-nav">
+            {[
+              { label: 'Overview',            href: '/' },
+              { label: 'Itinerary',           href: '/#itinerary' },
+              { label: 'Tour Package',        href: '/#package' },
+              { label: 'Your Hosts & Contact',href: '/#contact' },
+              { label: 'Gallery',             href: '/gallery', active: true },
+            ].map(tab => (
+              <Link
+                key={tab.label}
+                href={tab.href}
+                className={`site-tab-btn${tab.active ? ' active' : ''}`}
+                style={{ textDecoration: 'none' }}
+              >
+                {tab.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="header-wa-btn" style={{ flexShrink: 0, marginLeft: 16 }}>
+            <a href="https://wa.me/254115119090" target="_blank" rel="noopener noreferrer"
+              style={{ fontSize: 11, fontWeight: 700, color: '#fff', background: '#25D366', padding: '8px 14px', borderRadius: 3, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+              WhatsApp ↗
+            </a>
+          </div>
+        </div>
+      </div>
 
       <div style={{ background: '#f4f5f3', minHeight: '100vh' }}>
-        {/* Page header */}
+        {/* Page hero */}
         <div style={{ background: '#0f2219', padding: '48px 5% 40px' }}>
           <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#6a9e7f', marginBottom: 10 }}>
             Kenya · Small group safari &amp; coast
@@ -102,11 +136,6 @@ export default function GalleryPage() {
             Every photo below was captured on the Tsavo Safari &amp; Watamu Coast journey —
             from red-dust elephant herds to turquoise coral reefs.
           </p>
-          <div style={{ marginTop: 20 }}>
-            <Link href="/" style={{ fontSize: 12, color: '#dc7855', textDecoration: 'none', fontWeight: 700 }}>
-              ← Back to trip overview
-            </Link>
-          </div>
         </div>
 
         {/* Gallery grid */}

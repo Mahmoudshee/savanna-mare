@@ -12,6 +12,7 @@ const NAV = [
   { href: '/admin/days',       label: 'Itinerary Days', icon: '📅' },
   { href: '/admin/departures', label: 'Departures',     icon: '✈️' },
   { href: '/admin/bookings',   label: 'Bookings',       icon: '📋' },
+  { href: '/admin/account',    label: 'Account & Users',icon: '👤' },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
