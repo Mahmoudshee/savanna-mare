@@ -25,6 +25,7 @@ export default function SiteFooter() {
   const description = s.footer_description || 'Small-group safaris and coastal journeys rooted in local knowledge and genuine care. Founded by Emmanuel Mweu & Peter Chacha.'
   const phone = s.contact_phone || '+254 115 119 090'
   const address = s.contact_address || 'Mombasa, Kenya'
+  const email = s.contact_email || ''
 
   return (
     <footer style={{ background: '#0f2219', color: '#c8d8c5' }}>
@@ -107,6 +108,12 @@ export default function SiteFooter() {
               <div style={{ color: '#c8d8c5', fontWeight: 600, marginBottom: 3 }}>Payment</div>
               <span>EUR · USD · GBP</span>
             </div>
+            {email && (
+              <div>
+                <div style={{ color: '#c8d8c5', fontWeight: 600, marginBottom: 3 }}>Email</div>
+                <a href={`mailto:${email}`} style={{ color: '#8ba896' }}>{email}</a>
+              </div>
+            )}
 
           </div>
         </div>

@@ -141,29 +141,11 @@ export default function DepartureCalendar() {
     )
   }
 
-  const groups = groupByMonth(departures)
-
   return (
-    <div className="departure-month-list" style={{ display: 'grid', gap: 12, margin: '22px 0' }}>
-      {Object.entries(groups).map(([monthKey, deps]) => {
-        const [year, month] = monthKey.split('-').map(Number)
-        const monthLabel = `${MONTH_NAMES[month - 1]} ${year}`
-        return (
-          <details key={monthKey} className="departure-month-group" open>
-            <summary>
-              <span>{monthLabel}</span>
-              <span style={{ font: '700 10px var(--font-dm-sans,DM Sans),sans-serif', color: 'var(--muted)', whiteSpace: 'nowrap' }}>
-                {deps.length} departure{deps.length !== 1 ? 's' : ''}
-              </span>
-            </summary>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: 14, padding: '0 16px 16px' }}>
-              {deps.map(dep => (
-                <BookingCard key={dep.id} departure={dep} />
-              ))}
-            </div>
-          </details>
-        )
-      })}
+    <div className="booking-cards-grid" style={{ margin: '22px 0' }}>
+      {departures.map(dep => (
+        <BookingCard key={dep.id} departure={dep} />
+      ))}
     </div>
   )
 }
