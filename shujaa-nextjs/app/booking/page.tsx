@@ -37,14 +37,34 @@ function EnquiryForm() {
       subject: `New trip enquiry — Savanna & Mare Adventures${date ? ` (${date})` : ''}`,
     }
     new FormData(form).forEach((v, k) => { data[k] = v.toString() })
+
+    // Also attach departure info for DB save
+    data.departure_date   = date
+    data.departure_window = window_
+    data.departure_price  = price
+
     try {
+      // 1. Send to web3forms (email notification)
       const res = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
       const json = await res.json()
-      setStatus(json.success ? 'sent' : 'error')
+
+      if (json.success) {
+        // 2. Also save to Supabase DB so it appears in Admin CMS
+        // Fire-and-forget — don't block success state if DB save fails
+        fetch('/api/enquiry', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        }).catch(() => {/* silent — web3forms already delivered the email */})
+
+        setStatus('sent')
+      } else {
+        setStatus('error')
+      }
     } catch {
       setStatus('error')
     }

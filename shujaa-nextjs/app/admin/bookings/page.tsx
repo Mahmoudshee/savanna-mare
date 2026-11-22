@@ -1,7 +1,25 @@
 'use client'
 import { useEffect, useState } from 'react'
 
-type Booking = { id: string; first_name: string; surname: string; email: string; phone: string; room_preference: string; status: string; created_at: string; notes?: string }
+type Booking = {
+  id: string
+  first_name: string
+  surname: string
+  email: string
+  phone: string
+  room_preference: string
+  status: string
+  created_at: string
+  notes?: string
+  billing_json?: {
+    nationality?: string
+    travellers?: string
+    departure_date?: string
+    departure_window?: string
+    departure_price?: string
+    message?: string
+  }
+}
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([])
@@ -64,10 +82,24 @@ export default function BookingsPage() {
                   <span style={{ fontSize: 10, color: '#aaa' }}>{new Date(b.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 16, fontSize: 11, color: '#777', marginBottom: 12 }}>
+              {/* Extra details */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, fontSize: 11, color: '#777', marginBottom: 10 }}>
                 {b.room_preference && <span>🛏 {b.room_preference}</span>}
+                {b.billing_json?.travellers && <span>👥 {b.billing_json.travellers} traveller{b.billing_json.travellers !== '1' ? 's' : ''}</span>}
+                {b.billing_json?.nationality && <span>🌍 {b.billing_json.nationality}</span>}
               </div>
-              {b.notes && <div style={{ fontSize: 12, background: '#f9f8f5', borderRadius: 4, padding: '10px 12px', marginBottom: 12, color: '#555', lineHeight: 1.6 }}>{b.notes}</div>}
+              {b.billing_json?.departure_date && (
+                <div style={{ background: '#e8f4ee', border: '1px solid #b8d8c4', borderRadius: 4, padding: '8px 12px', fontSize: 11, color: '#245a38', marginBottom: 10, lineHeight: 1.6 }}>
+                  📅 <strong>{b.billing_json.departure_date}</strong>
+                  {b.billing_json.departure_window ? ` · ${b.billing_json.departure_window}` : ''}
+                  {b.billing_json.departure_price ? ` · ${b.billing_json.departure_price}` : ''}
+                </div>
+              )}
+              {(b.billing_json?.message || b.notes) && (
+                <div style={{ fontSize: 12, background: '#f9f8f5', borderRadius: 4, padding: '10px 12px', marginBottom: 12, color: '#555', lineHeight: 1.6 }}>
+                  💬 {b.billing_json?.message || b.notes}
+                </div>
+              )}
               <div style={{ display: 'flex', gap: 8 }}>
                 {b.status !== 'confirmed' && (
                   <button onClick={() => setStatus(b.id, 'confirmed')}
