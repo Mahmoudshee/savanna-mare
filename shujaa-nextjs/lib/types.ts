@@ -19,9 +19,22 @@ export interface HomeContent {
   faq_text: string
   hosts_name: string
   hosts_bio: string
+  hosts_photo_url: string
   video_youtube_id: string
   price_low: number
   price_high: number
+  pricing_note: string
+  departure_note: string
+  // Contact
+  contact_email: string
+  contact_phone: string
+  contact_address: string
+  contact_ig: string
+  contact_reply_note: string
+  // Sidebar
+  sidebar_intro: string
+  sidebar_reserve_note: string
+  sidebar_bullets_json: string[]
   updated_at: string
 }
 
@@ -36,7 +49,7 @@ export interface ItineraryDay {
   hero_image_url: string
   sub_images_json: { url: string; alt: string }[]
   videos_json: { type: 'youtube' | 'local'; src: string; poster?: string; caption: string }[]
-  gallery_json: { url: string; alt: string; caption: string }[]
+  gallery_json: { url: string; alt: string; caption?: string }[]
   included_items: string[]
   not_included_items: string[]
   updated_at: string
@@ -75,4 +88,3 @@ export interface AdminUser {
   created_by: string | null
   created_at: string
 }
-

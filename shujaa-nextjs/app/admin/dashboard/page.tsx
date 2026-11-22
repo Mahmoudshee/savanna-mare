@@ -37,7 +37,7 @@ export default async function DashboardPage() {
       <p style={{ color: 'var(--muted)', fontSize: 13, margin: '0 0 32px' }}>Savanna & Mare Adventures · Admin panel</p>
 
       {/* Stats grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 20, marginBottom: 36 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 16, marginBottom: 36 }}>
         {[
           { label: 'Total enquiries', value: bookingCount, color: 'var(--coral)' },
           { label: 'Active departures', value: departureCount, color: 'var(--green)' },
@@ -56,6 +56,7 @@ export default async function DashboardPage() {
           <h2 style={{ font: '500 20px var(--font-playfair,Playfair Display),serif', margin: 0 }}>Recent enquiries</h2>
           <a href="/admin/bookings" style={{ fontSize: 11, color: 'var(--coral)', fontWeight: 700 }}>View all →</a>
         </div>
+        <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ background: '#f9f8f5' }}>
@@ -84,6 +85,7 @@ export default async function DashboardPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )

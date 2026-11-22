@@ -1,12 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 import { createClient } from '@supabase/supabase-js'
-import { scrypt, randomBytes, timingSafeEqual } from 'crypto'
-import { promisify } from 'util'
-import fs from 'fs'
-import path from 'path'
-
-const scryptAsync = promisify(scrypt)
 
 const SECRET = new TextEncoder().encode(
   process.env.ADMIN_JWT_SECRET || 'shujaa-admin-secret'
@@ -14,45 +8,59 @@ const SECRET = new TextEncoder().encode(
 const COOKIE_NAME = 'shujaa_admin_session'
 const MAX_AGE = 60 * 60 * 24 * 7 // 7 days
 
-// ── Local credential file (no network needed) ──────────────────────────────
-const CREDS_FILE = path.join(process.cwd(), 'data', 'admin-credentials.json')
+/** Service-role Supabase client — bypasses RLS */
+function serviceClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  )
+}
 
 export interface AdminRecord {
   id: string
   email: string
   displayName: string
   role: string
-  hash: string   // "salt:derivedKey" (hex)
 }
 
-function readCreds(): { admins: AdminRecord[] } {
-  try {
-    return JSON.parse(fs.readFileSync(CREDS_FILE, 'utf8'))
-  } catch {
-    return { admins: [] }
+// ── Auth via Supabase ──────────────────────────────────────────────────────
+
+export async function verifyAdminCredential(
+  email: string,
+  password: string
+): Promise<AdminRecord | null> {
+  const supabase = serviceClient()
+
+  // 1. Sign in with Supabase Auth to verify the password
+  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
+
+  if (authError || !authData.user) {
+    console.error('Supabase auth error:', authError?.message)
+    return null
   }
-}
 
-function writeCreds(data: { admins: AdminRecord[] }) {
-  fs.mkdirSync(path.dirname(CREDS_FILE), { recursive: true })
-  fs.writeFileSync(CREDS_FILE, JSON.stringify(data, null, 2))
-}
+  // 2. Look up the admin_users row to get role + display_name
+  const { data: adminRow, error: dbError } = await supabase
+    .from('admin_users')
+    .select('id, email, display_name, role')
+    .eq('id', authData.user.id)
+    .single()
 
-export async function hashPassword(password: string): Promise<string> {
-  const salt = randomBytes(16).toString('hex')
-  const derived = (await scryptAsync(password, salt, 64)) as Buffer
-  return `${salt}:${derived.toString('hex')}`
-}
+  if (dbError || !adminRow) {
+    console.error('admin_users lookup failed:', dbError?.message)
+    return null
+  }
 
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  const [salt, stored] = hash.split(':')
-  const derived = (await scryptAsync(password, salt, 64)) as Buffer
-  const storedBuf = Buffer.from(stored, 'hex')
-  return derived.length === storedBuf.length && timingSafeEqual(derived, storedBuf)
-}
-
-export function adminExists(): boolean {
-  return readCreds().admins.length > 0
+  return {
+    id: adminRow.id,
+    email: adminRow.email,
+    displayName: adminRow.display_name,
+    role: adminRow.role,
+  }
 }
 
 export async function createAdminCredential(
@@ -61,29 +69,56 @@ export async function createAdminCredential(
   displayName: string,
   role = 'super_admin'
 ): Promise<{ ok: boolean; error?: string }> {
-  const data = readCreds()
-  if (data.admins.find(a => a.email.toLowerCase() === email.toLowerCase())) {
+  const supabase = serviceClient()
+
+  // Check if the email is already registered in admin_users
+  const { data: existing } = await supabase
+    .from('admin_users')
+    .select('id')
+    .eq('email', email.toLowerCase())
+    .maybeSingle()
+
+  if (existing) {
     return { ok: false, error: 'An account with this email already exists.' }
   }
-  const hash = await hashPassword(password)
-  const id = randomBytes(16).toString('hex')
-  data.admins.push({ id, email: email.toLowerCase(), displayName, role, hash })
-  writeCreds(data)
+
+  // Create the user in Supabase Auth (auto-confirm email)
+  const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    email: email.toLowerCase(),
+    password,
+    email_confirm: true,
+    user_metadata: { display_name: displayName, is_admin: 'true' },
+  })
+
+  if (authError || !authData.user) {
+    return { ok: false, error: authError?.message || 'Failed to create auth user.' }
+  }
+
+  // Upsert into admin_users (the trigger should handle this, but upsert as safety net)
+  const { error: dbError } = await supabase.from('admin_users').upsert({
+    id: authData.user.id,
+    email: email.toLowerCase(),
+    display_name: displayName,
+    role,
+  })
+
+  if (dbError) {
+    return { ok: false, error: dbError.message }
+  }
+
   return { ok: true }
 }
 
-export async function verifyAdminCredential(
-  email: string,
-  password: string
-): Promise<AdminRecord | null> {
-  const data = readCreds()
-  const admin = data.admins.find(a => a.email.toLowerCase() === email.toLowerCase())
-  if (!admin) return null
-  const ok = await verifyPassword(password, admin.hash)
-  return ok ? admin : null
+export async function adminExists(): Promise<boolean> {
+  const supabase = serviceClient()
+  const { count } = await supabase
+    .from('admin_users')
+    .select('id', { count: 'exact', head: true })
+  return (count ?? 0) > 0
 }
 
 // ── JWT session ────────────────────────────────────────────────────────────
+
 export async function createAdminToken(adminId: string, email: string, role: string) {
   return new SignJWT({ adminId, email, role })
     .setProtectedHeader({ alg: 'HS256' })
@@ -131,9 +166,15 @@ export function clearAdminCookie() {
 export async function requireAdminSession() {
   const session = await getAdminSession()
   if (!session) return null
-  // Verify admin still exists in local credentials
-  const data = readCreds()
-  const admin = data.admins.find(a => a.id === session.adminId)
+
+  // Verify admin still exists in Supabase
+  const supabase = serviceClient()
+  const { data: admin } = await supabase
+    .from('admin_users')
+    .select('display_name, role')
+    .eq('id', session.adminId)
+    .maybeSingle()
+
   if (!admin) return null
-  return { ...session, displayName: admin.displayName }
+  return { ...session, displayName: admin.display_name }
 }

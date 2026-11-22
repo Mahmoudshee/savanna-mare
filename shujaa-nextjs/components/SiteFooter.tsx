@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link'
+import Logo from '@/components/Logo'
 import { useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
@@ -31,12 +32,9 @@ export default function SiteFooter() {
       <div className="shell footer-grid" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr 1fr', gap: 48, padding: '56px 3% 48px' }}>
         {/* Brand column */}
         <div>
-          <div style={{ font: '700 20px DM Sans,sans-serif', letterSpacing: '0.045em', textTransform: 'uppercase', color: '#fff', marginBottom: 4 }}>
-            SAVANNA
-          </div>
-          <div style={{ font: '500 9px DM Sans,sans-serif', letterSpacing: '0.23em', textTransform: 'uppercase', color: 'var(--moss)', marginBottom: 20 }}>
-            &amp; MARE ADVENTURES
-          </div>
+          <Link href="/" style={{ display: 'inline-block', marginBottom: 16 }}>
+            <Logo height={42} variant="light" />
+          </Link>
           <p style={{ fontSize: 12, lineHeight: 1.75, color: '#8ba896', maxWidth: 240 }}>
             {description}
           </p>

@@ -1,26 +1,12 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase'
 import type { Departure } from '@/lib/types'
-
-interface DepartureCalendarProps {
-  departures: Departure[]
-}
 
 const MONTH_NAMES = [
   'January','February','March','April','May','June',
   'July','August','September','October','November','December',
 ]
-const HIGH_SEASON_MONTHS = [6, 7, 10, 11] // Jul, Aug, Nov, Dec (0-indexed)
-
-function scheduledFridays(year: number, month: number) {
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const firstWeekday = new Date(year, month, 1).getDay()
-  const lastWeekday = new Date(year, month, daysInMonth).getDay()
-  return {
-    early: 1 + ((5 - firstWeekday + 7) % 7),
-    late: daysInMonth - ((lastWeekday - 5 + 7) % 7),
-  }
-}
 
 function formatDate(d: Date) {
   return new Intl.DateTimeFormat('en-GB', {
@@ -33,19 +19,27 @@ function formatWeekday(d: Date) {
 }
 
 function BookingCard({
-  year, month, day, windowName, highSeason,
+  departure,
 }: {
-  year: number; month: number; day: number; windowName: string; highSeason: boolean
+  departure: Departure
 }) {
-  const arrival = new Date(year, month, day)
-  const departure = new Date(year, month, day + 8)
-  const isoDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  const arrivalDate = new Date(departure.arrival_date + 'T00:00:00')
+  const departureDate = new Date(arrivalDate)
+  departureDate.setDate(departureDate.getDate() + 8)
+
+  const priceLow = departure.price_low
+  const priceHigh = departure.price_high
+  const isHigh = departure.is_high_season
+
+  const priceDisplay = priceLow && priceHigh
+    ? `€${priceLow.toLocaleString()}–€${priceHigh.toLocaleString()}`
+    : isHigh ? 'Up to €2,700' : 'From €2,400'
 
   const handleBook = () => {
     const params = new URLSearchParams({
-      date: `${MONTH_NAMES[month]} ${day}, ${year}`,
-      window: windowName,
-      price: highSeason ? 'up to €2,700 per person' : 'from €2,400 per person',
+      date: formatDate(arrivalDate),
+      window: `Arrival · ${formatWeekday(arrivalDate)}`,
+      price: priceDisplay + ' per person',
     })
     window.location.href = `/booking?${params}`
   }
@@ -55,14 +49,14 @@ function BookingCard({
       <div className="booking-dates" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 30px minmax(0,1fr)', alignItems: 'center', gap: 6 }}>
         <div>
           <div className="booking-date-label" style={{ fontSize: 9, color: 'var(--muted)', marginBottom: 5 }}>ARRIVE</div>
-          <div className="booking-date-value" style={{ fontSize: 'clamp(14px,1.8vw,20px)', fontWeight: 800, lineHeight: 1.2, whiteSpace: 'nowrap' }}>{formatDate(arrival)}</div>
-          <div style={{ fontSize: 9, color: 'var(--muted)', marginTop: 5, lineHeight: 1.4 }}>{formatWeekday(arrival)} · City Blue Creekside Hotel</div>
+          <div className="booking-date-value" style={{ fontSize: 'clamp(14px,1.8vw,20px)', fontWeight: 800, lineHeight: 1.2, whiteSpace: 'nowrap' }}>{formatDate(arrivalDate)}</div>
+          <div style={{ fontSize: 9, color: 'var(--muted)', marginTop: 5, lineHeight: 1.4 }}>{formatWeekday(arrivalDate)} · City Blue Creekside Hotel</div>
         </div>
         <div style={{ height: 26, width: 26, display: 'grid', placeItems: 'center', borderRadius: '50%', background: '#20211f', color: '#fff', fontSize: 13, margin: 'auto' }}>➜</div>
         <div>
           <div className="booking-date-label" style={{ fontSize: 9, color: 'var(--muted)', marginBottom: 5 }}>DEPART</div>
-          <div className="booking-date-value" style={{ fontSize: 'clamp(14px,1.8vw,20px)', fontWeight: 800, lineHeight: 1.2, whiteSpace: 'nowrap' }}>{formatDate(departure)}</div>
-          <div style={{ fontSize: 9, color: 'var(--muted)', marginTop: 5, lineHeight: 1.4 }}>{formatWeekday(departure)} · 9 days / 8 nights</div>
+          <div className="booking-date-value" style={{ fontSize: 'clamp(14px,1.8vw,20px)', fontWeight: 800, lineHeight: 1.2, whiteSpace: 'nowrap' }}>{formatDate(departureDate)}</div>
+          <div style={{ fontSize: 9, color: 'var(--muted)', marginTop: 5, lineHeight: 1.4 }}>{formatWeekday(departureDate)} · 9 days / 8 nights</div>
         </div>
       </div>
 
@@ -72,15 +66,21 @@ function BookingCard({
 
       <div style={{ background: '#f4f5f3', textAlign: 'center', padding: '13px 10px', marginBottom: 12 }}>
         <div style={{ fontSize: 'clamp(23px,3vw,32px)', fontWeight: 800, lineHeight: 1.15, color: '#20211f' }}>
-          {highSeason ? 'Up to €2,700' : 'From €2,400'}
+          {priceDisplay}
         </div>
         <div style={{ fontSize: 10, color: '#515c54', marginTop: 5 }}>
-          per person · EUR · {highSeason ? 'high-season fare' : 'seasonal fare'}
+          per person · EUR · {isHigh ? 'high-season fare' : 'seasonal fare'}
         </div>
       </div>
       <div style={{ textAlign: 'center', fontSize: 10, color: '#515c54', paddingBottom: 13 }}>
         Private room available for an extra €560
       </div>
+
+      {departure.notes && (
+        <div style={{ fontSize: 10, color: '#515c54', background: '#fdf9f4', padding: '8px 10px', borderRadius: 3, marginBottom: 10 }}>
+          {departure.notes}
+        </div>
+      )}
 
       <button
         onClick={handleBook}
@@ -100,30 +100,66 @@ function BookingCard({
   )
 }
 
-export default function DepartureCalendar({ departures }: DepartureCalendarProps) {
-  const now = new Date()
-  const startYear = now.getFullYear()
+// Group departures by year-month
+function groupByMonth(departures: Departure[]) {
+  const groups: Record<string, Departure[]> = {}
+  for (const dep of departures) {
+    const key = dep.arrival_date.slice(0, 7) // "YYYY-MM"
+    if (!groups[key]) groups[key] = []
+    groups[key].push(dep)
+  }
+  return groups
+}
 
-  const months = Array.from({ length: 12 }, (_, offset) => {
-    const monthIndex = (9 + offset) % 12
-    const year = startYear + Math.floor((9 + offset) / 12)
-    return { monthIndex, year }
-  })
+export default function DepartureCalendar() {
+  const [departures, setDepartures] = useState<Departure[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase
+      .from('departures')
+      .select('*')
+      .eq('is_active', true)
+      .gte('arrival_date', new Date().toISOString().slice(0, 10))
+      .order('arrival_date', { ascending: true })
+      .then(({ data }) => {
+        setDepartures(data || [])
+        setLoading(false)
+      })
+  }, [])
+
+  if (loading) {
+    return <div style={{ padding: '20px 0', color: 'var(--muted)', fontSize: 12 }}>Loading departures…</div>
+  }
+
+  if (departures.length === 0) {
+    return (
+      <div style={{ padding: '24px', background: '#f9f8f5', borderRadius: 4, textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>
+        No upcoming departures listed yet. Contact us on WhatsApp to ask about availability.
+      </div>
+    )
+  }
+
+  const groups = groupByMonth(departures)
 
   return (
     <div className="departure-month-list" style={{ display: 'grid', gap: 12, margin: '22px 0' }}>
-      {months.map(({ monthIndex, year }) => {
-        const dates = scheduledFridays(year, monthIndex)
-        const highSeason = HIGH_SEASON_MONTHS.includes(monthIndex)
+      {Object.entries(groups).map(([monthKey, deps]) => {
+        const [year, month] = monthKey.split('-').map(Number)
+        const monthLabel = `${MONTH_NAMES[month - 1]} ${year}`
         return (
-          <details key={`${year}-${monthIndex}`} className="departure-month-group" open>
+          <details key={monthKey} className="departure-month-group" open>
             <summary>
-              <span>{MONTH_NAMES[monthIndex]} {year}</span>
-              <span style={{ font: '700 10px var(--font-dm-sans,DM Sans),sans-serif', color: 'var(--muted)', whiteSpace: 'nowrap' }}>2 Friday departures</span>
+              <span>{monthLabel}</span>
+              <span style={{ font: '700 10px var(--font-dm-sans,DM Sans),sans-serif', color: 'var(--muted)', whiteSpace: 'nowrap' }}>
+                {deps.length} departure{deps.length !== 1 ? 's' : ''}
+              </span>
             </summary>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 14, padding: '0 16px 16px' }}>
-              <BookingCard year={year} month={monthIndex} day={dates.early} windowName="Arrival · first Friday (days 1–9)" highSeason={highSeason} />
-              <BookingCard year={year} month={monthIndex} day={dates.late} windowName="Arrival · last Friday (final 9 days)" highSeason={highSeason} />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: 14, padding: '0 16px 16px' }}>
+              {deps.map(dep => (
+                <BookingCard key={dep.id} departure={dep} />
+              ))}
             </div>
           </details>
         )

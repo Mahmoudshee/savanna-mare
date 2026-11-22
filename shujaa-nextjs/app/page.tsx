@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Logo from '@/components/Logo'
 import { getHomeContent, getSiteSettings, getAllDays } from '@/lib/content-client'
 import SiteFooter from '@/components/SiteFooter'
 import VideoModal from '@/components/VideoModal'
@@ -41,10 +42,9 @@ export default function HomePage() {
 
         {/* Logo | Tabs | Actions — all in one row */}
         <div className="shell header-row">
-          {/* Brand */}
-          <Link href="/" style={{ flexShrink: 0, marginRight: 40, textDecoration: 'none' }}>
-            <div style={{ font: '700 15px DM Sans,sans-serif', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#fff', lineHeight: 1 }}>SAVANNA</div>
-            <div style={{ font: '500 7.5px DM Sans,sans-serif', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#6a9e7f', marginTop: 3 }}>& MARE ADVENTURES</div>
+          {/* Logo */}
+          <Link href="/" style={{ flexShrink: 0, marginRight: 40, textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+            <Logo height={38} variant="light" />
           </Link>
 
           {/* Tabs */}
@@ -190,7 +190,9 @@ export default function HomePage() {
                     <h2 style={{ font: '500 34px var(--font-playfair,Playfair Display),serif', margin: '6px 0 4px', letterSpacing: '-0.5px' }}>
                       €{home.price_low.toLocaleString()}–€{home.price_high.toLocaleString()} <span style={{ font: '400 16px DM Sans,sans-serif', color: 'var(--muted)' }}>/ person</span>
                     </h2>
-                    <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0 }}>July, August, November & December are high season (up to €2,700). All other months from €2,400.</p>
+                    <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0 }}>
+                      {(home as unknown as Record<string,unknown>).pricing_note as string || 'July, August, November & December are high season (up to €2,700). All other months from €2,400.'}
+                    </p>
                   </div>
 
                   {/* What's included */}
@@ -215,10 +217,9 @@ export default function HomePage() {
                   {/* Departure calendar */}
                   <div>
                     <div style={{ fontSize: 9, fontWeight: 800, color: 'var(--moss)', letterSpacing: '0.17em', textTransform: 'uppercase', marginBottom: 14 }}>Departure dates</div>
-                    <DepartureCalendar departures={[]} />
+                    <DepartureCalendar />
                     <p style={{ fontSize: 10, color: 'var(--muted)', lineHeight: 1.7, marginTop: 14 }}>
-                      Two Friday departures each month. Trips confirm at 6 travellers, maximum 15.
-                      Reserve for €0 · €200 deposit once confirmed · instalments available until 31 days before departure.
+                      {home.departure_note || 'Trips confirm at 6 travellers, maximum 15. Reserve for €0 · €200 deposit once confirmed · instalments available until 31 days before departure.'}
                     </p>
                   </div>
 
@@ -238,7 +239,10 @@ export default function HomePage() {
                     <div style={{ fontSize: 9, fontWeight: 800, color: 'var(--moss)', letterSpacing: '0.17em', textTransform: 'uppercase', marginBottom: 6 }}>Meet the team</div>
                     <h2 style={{ font: '500 34px var(--font-playfair,Playfair Display),serif', margin: '0 0 24px', letterSpacing: '-0.5px' }}>{home.hosts_name}</h2>
                     <div style={{ background: 'var(--sand)', padding: 32, display: 'flex', alignItems: 'flex-start', gap: 28, borderRadius: 4 }}>
-                      <div style={{ width: 72, height: 72, flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: '50%', background: 'var(--green)', color: '#fff', font: 'italic 15px var(--font-playfair,Playfair Display),serif', textAlign: 'center' }}>EM · PC</div>
+                      {home.hosts_photo_url
+                        ? <img src={home.hosts_photo_url} alt={home.hosts_name} style={{ width: 72, height: 72, flexShrink: 0, borderRadius: '50%', objectFit: 'cover' }} />
+                        : <div style={{ width: 72, height: 72, flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: '50%', background: 'var(--green)', color: '#fff', font: 'italic 15px var(--font-playfair,Playfair Display),serif', textAlign: 'center' }}>EM · PC</div>
+                      }
                       <div>
                         <h3 style={{ font: '500 22px var(--font-playfair,Playfair Display),serif', margin: '0 0 10px' }}>{home.hosts_name}</h3>
                         <p style={{ fontSize: 14, lineHeight: 1.75, color: '#657268', margin: 0 }}>{home.hosts_bio}</p>
@@ -251,9 +255,11 @@ export default function HomePage() {
                     <div style={{ fontSize: 9, fontWeight: 800, color: 'var(--moss)', letterSpacing: '0.17em', textTransform: 'uppercase', marginBottom: 20 }}>Get in touch</div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 28 }}>
                       {[
-                        { icon: '📱', label: 'WhatsApp', value: '+254 115 119 090', href: waUrl },
-                        { icon: '📍', label: 'Base', value: 'Mombasa, Kenya', href: null },
-                        { icon: '💶', label: 'Payment', value: 'EUR · USD · GBP accepted', href: null },
+                        { icon: '📱', label: 'WhatsApp', value: home.contact_phone || settings.contact_phone || '+254 115 119 090', href: waUrl },
+                        { icon: '📍', label: 'Base', value: home.contact_address || settings.contact_address || 'Mombasa, Kenya', href: null },
+                        ...(home.contact_email || settings.contact_email
+                          ? [{ icon: '✉️', label: 'Email', value: home.contact_email || settings.contact_email, href: `mailto:${home.contact_email || settings.contact_email}` }]
+                          : [{ icon: '💶', label: 'Payment', value: 'EUR · USD · GBP accepted', href: null }]),
                         { icon: '🕐', label: 'Response time', value: 'Within a few hours', href: null },
                       ].map(({ icon, label, value, href }) => (
                         <div key={label} style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 6, padding: '20px 22px' }}>
@@ -272,7 +278,7 @@ export default function HomePage() {
                     </a>
 
                     <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 20, lineHeight: 1.75 }}>
-                      We reply to all enquiries personally. Send us a message on WhatsApp and we will get back to you with availability, pricing and any questions you have about the trip.
+                      {home.contact_reply_note || 'We reply to all enquiries personally. Send us a message on WhatsApp and we will get back to you with availability, pricing and any questions you have about the trip.'}
                     </p>
                   </div>
                 </section>
@@ -288,7 +294,7 @@ export default function HomePage() {
                 <small style={{ font: '400 11px DM Sans,sans-serif', color: 'var(--muted)' }}> / person</small>
               </div>
               <p style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.6, marginBottom: 16 }}>
-                {(home as unknown as Record<string, unknown>).sidebar_intro as string || 'High season (Jul, Aug, Nov, Dec) up to €2,700. All other months from €2,400.'}
+                {home.sidebar_intro || 'High season (Jul, Aug, Nov, Dec) up to €2,700. All other months from €2,400.'}
               </p>
 
               <a href={waUrl} target="_blank" rel="noopener noreferrer" className="btn-primary"
@@ -301,13 +307,12 @@ export default function HomePage() {
               </button>
 
               <p style={{ textAlign: 'center', fontSize: 10, color: 'var(--muted)', lineHeight: 1.7, marginTop: 12 }}>
-                Reserve for €0 · €200 deposit on confirmation<br />
-                Instalments available until 31 days before departure
+                {home.sidebar_reserve_note || 'Reserve for €0 · €200 deposit on confirmation\nInstalments available until 31 days before departure'}
               </p>
               <hr style={{ border: 0, borderTop: '1px solid var(--line)', margin: '18px 0' }} />
               <div style={{ fontSize: 11, color: '#53665a', lineHeight: 2.2 }}>
-                {(Array.isArray((home as unknown as Record<string,unknown>).sidebar_bullets_json) && ((home as unknown as Record<string,unknown>).sidebar_bullets_json as string[]).length > 0
-                  ? (home as unknown as Record<string,unknown>).sidebar_bullets_json as string[]
+                {(Array.isArray(home.sidebar_bullets_json) && home.sidebar_bullets_json.length > 0
+                  ? home.sidebar_bullets_json
                   : ['Two Friday departures every month','Trips confirm at 6 travellers · max 15','Private jeep & professional guide included','All safari lodge stays full board','Free trip changes up to 31 days prior']
                 ).map((p, i) => (
                   <div key={i}><b style={{ color: 'var(--moss)', marginRight: 8 }}>✓</b>{p}</div>

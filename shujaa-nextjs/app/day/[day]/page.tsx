@@ -1,10 +1,12 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import Logo from '@/components/Logo'
 import { getDayByNumber, getSiteSettings } from '@/lib/content'
 import SiteFooter from '@/components/SiteFooter'
 import DayNavProgress from '@/components/DayNavProgress'
 
-export const revalidate = 60
+export const revalidate = 0
+export const dynamic = 'force-dynamic'
 
 export async function generateStaticParams() {
   return Array.from({ length: 9 }, (_, i) => ({ day: String(i + 1) }))
@@ -36,7 +38,8 @@ export default async function DayPage({ params }: { params: { day: string } }) {
 
   const prevDay = dayNum > 1 ? dayNum - 1 : null
   const nextDay = dayNum < 9 ? dayNum + 1 : null
-  const [, ...subImgs] = day.sub_images_json
+  const allImages = [...(day.sub_images_json || []), ...(day.gallery_json || [])]
+  const [, ...subImgs] = allImages
 
   return (
     <>
@@ -46,9 +49,8 @@ export default async function DayPage({ params }: { params: { day: string } }) {
           {settings.bar_text || 'Small groups · local knowledge · journeys made with care'}
         </div>
         <div className="shell" style={{ display: 'flex', alignItems: 'center', height: 58, justifyContent: 'space-between' }}>
-          <Link href="/" style={{ textDecoration: 'none' }}>
-            <div style={{ font: '700 15px DM Sans,sans-serif', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#fff', lineHeight: 1 }}>SAVANNA</div>
-            <div style={{ font: '500 7.5px DM Sans,sans-serif', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#6a9e7f', marginTop: 3 }}>& MARE ADVENTURES</div>
+          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+            <Logo height={36} variant="light" />
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
             <Link href="/?tab=itinerary" style={{ fontSize: 11, fontWeight: 700, color: '#c8d8c5', textDecoration: 'none' }}>← Full itinerary</Link>

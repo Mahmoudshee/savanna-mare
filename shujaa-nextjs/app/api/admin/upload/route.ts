@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
 import { guardAdmin, SUPABASE_URL, SERVICE_KEY } from '@/lib/admin-db'
 
-export const config = { api: { bodyParser: false } }
-
 // POST /api/admin/upload
 // FormData: file (File), path (string, e.g. "gallery/day-1/image.jpg")
 export async function POST(req: Request) {

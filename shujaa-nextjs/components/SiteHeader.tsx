@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link'
+import Logo from '@/components/Logo'
 
 interface SiteHeaderProps {
   barText?: string
@@ -20,11 +21,10 @@ export default function SiteHeader({
     <>
       <div className="top-bar">{barText}</div>
       <header className="shell nav-bar">
-        <Link href="/" className="brand-logo">
-          SAVANNA <em>& MARE ADVENTURES</em>
+        <Link href="/" className="brand-logo" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+          <Logo height={40} variant="light" />
         </Link>
 
-        {/* Only show middle nav on inner pages (day, booking, login) */}
         {showNav && (
           <nav style={{ display: 'flex', gap: 31, fontSize: 12, fontWeight: 600 }}>
             <Link href="/" style={{ color: 'inherit' }}>Our experiences</Link>
@@ -34,12 +34,7 @@ export default function SiteHeader({
         )}
 
         <div style={{ display: 'flex', gap: 19, alignItems: 'center', fontSize: 12 }}>
-          <a
-            href={waUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-outline"
-          >
+          <a href={waUrl} target="_blank" rel="noopener noreferrer" className="btn-outline">
             WhatsApp&nbsp; ↗
           </a>
         </div>

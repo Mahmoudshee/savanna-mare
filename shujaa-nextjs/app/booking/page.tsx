@@ -2,6 +2,7 @@
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import Link from 'next/link'
+import Logo from '@/components/Logo'
 import SiteFooter from '@/components/SiteFooter'
 
 const W3F_KEY = 'b14304cf-3a64-408c-a302-d6d49852e0dd'
@@ -57,9 +58,8 @@ function EnquiryForm() {
           Savanna & Mare Adventures · Kenya coast & safari
         </div>
         <div className="shell" style={{ display: 'flex', alignItems: 'center', height: 58, justifyContent: 'space-between' }}>
-          <Link href="/" style={{ textDecoration: 'none' }}>
-            <div style={{ font: '700 15px DM Sans,sans-serif', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#fff', lineHeight: 1 }}>SAVANNA</div>
-            <div style={{ font: '500 7.5px DM Sans,sans-serif', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#6a9e7f', marginTop: 3 }}>& MARE ADVENTURES</div>
+          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+            <Logo height={36} variant="light" />
           </Link>
           <Link href="/" style={{ fontSize: 11, fontWeight: 700, color: '#c8d8c5', textDecoration: 'none' }}>← Back to site</Link>
         </div>

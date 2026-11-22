@@ -1,0 +1,32 @@
+# ── Node / Next.js ────────────────────────────────────────────
+node_modules/
+.next/
+.turbo/
+out/
+dist/
+build/
+
+# ── Environment & secrets ─────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.env
+
+# ── Data / local credentials ──────────────────────────────────
+data/admin-credentials.json
+shujaa-nextjs/data/admin-credentials.json
+
+# ── TypeScript build cache ────────────────────────────────────
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ── OS / editor junk ─────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ── Supabase local ───────────────────────────────────────────
+.supabase/
+supabase/.branches/
+supabase/.temp/

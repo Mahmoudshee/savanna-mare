@@ -34,6 +34,6 @@ export async function POST(request: Request) {
 
 export async function GET() {
   // Check if any admin already exists (used by signup page to show/hide form)
-  return NextResponse.json({ hasAdmin: adminExists() })
+  return NextResponse.json({ hasAdmin: await adminExists() })
 }
 
